@@ -33,7 +33,11 @@
 #define CONFIG_BOARD_LATE_INIT
 
 /* Clock Defines */
+#ifdef CONFIG_SBC8600B
+#define V_OSCK				25000000
+#else
 #define V_OSCK				24000000  /* Clock output from T2 */
+#endif
 #define V_SCLK				(V_OSCK)
 
 /* Custom script for NOR */
