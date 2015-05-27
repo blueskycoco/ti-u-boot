@@ -445,8 +445,11 @@
 /* Network. */
 #define CONFIG_PHY_GIGE
 #define CONFIG_PHYLIB
+#ifdef CONFIG_SBC8600B
+#define CONFIG_PHY_ATHEROS
+#else
 #define CONFIG_PHY_SMSC
-
+#endif
 /*
  * NOR Size = 16 MiB
  * Number of Sectors/Blocks = 128

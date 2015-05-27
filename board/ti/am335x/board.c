@@ -45,6 +45,16 @@ static struct ctrl_dev *cdev = (struct ctrl_dev *)CTRL_DEVICE_BASE;
  */
 static int read_eeprom(struct am335x_baseboard_id *header)
 {
+#ifdef CONFIG_SBC8600B
+//puts("sdfk\n");
+strcpy(header->name,"sbc8600b");
+strcpy(header->config,"sq board");
+strcpy(header->mac_addr[0],"12:34:56:78:90:12");
+header->magic=0x0001;
+//strcpy(header->name,"sq");
+strcpy(header->serial,"00");
+strcpy(header->version,"0.00");
+#else
 	/* Check if baseboard eeprom is available */
 	if (i2c_probe(CONFIG_SYS_I2C_EEPROM_ADDR)) {
 		puts("Could not probe the EEPROM; something fundamentally "
@@ -78,7 +88,7 @@ static int read_eeprom(struct am335x_baseboard_id *header)
 			return -EINVAL;
 		}
 	}
-
+#endif
 	return 0;
 }
 
@@ -191,7 +201,34 @@ static struct emif_regs ddr3_evm_emif_reg_data = {
 	.emif_ddr_phy_ctlr_1 = MT41J512M8RH125_EMIF_READ_LATENCY |
 				PHY_EN_DYN_PWRDN,
 };
+#ifdef CONFIG_SBC8600B
+static const struct ddr_data ddr3_sbc8600b_data = {
+	.datardsratio0 = SBC8600B_RD_DQS,
+	.datawdsratio0 = SBC8600B_WR_DQS,
+	.datafwsratio0 = SBC8600B_PHY_FIFO_WE,
+	.datawrsratio0 = SBC8600B_PHY_WR_DATA,
+};
+static const struct cmd_control ddr3_cmd_ctrl_sbc8600b_data = {
+	.cmd0csratio = SBC8600B_RATIO,
+	.cmd0iclkout = SBC8600B_INVERT_CLKOUT,
 
+	.cmd1csratio = SBC8600B_RATIO,
+	.cmd1iclkout = SBC8600B_INVERT_CLKOUT,
+
+	.cmd2csratio = SBC8600B_RATIO,
+	.cmd2iclkout = SBC8600B_INVERT_CLKOUT,
+};
+static struct emif_regs ddr3_emif_reg_sbc8600b_data = {
+	.sdram_config = SBC8600B_EMIF_SDCFG,
+	.ref_ctrl = SBC8600B_EMIF_SDREF,
+	.sdram_tim1 = SBC8600B_EMIF_TIM1,
+	.sdram_tim2 = SBC8600B_EMIF_TIM2,
+	.sdram_tim3 = SBC8600B_EMIF_TIM3,
+	.zq_config = SBC8600B_ZQ_CFG,
+	.emif_ddr_phy_ctlr_1 = SBC8600B_EMIF_READ_LATENCY |
+				PHY_EN_DYN_PWRDN,
+};
+#endif
 #ifdef CONFIG_SPL_OS_BOOT
 int spl_start_uboot(void)
 {
@@ -217,6 +254,10 @@ const struct dpll_params dpll_ddr_evm_sk = {
 		303, OSC-1, 1, -1, -1, -1, -1};
 const struct dpll_params dpll_ddr_bone_black = {
 		400, OSC-1, 1, -1, -1, -1, -1};
+#ifdef CONFIG_SBC8600B
+const struct dpll_params dpll_ddr_sbc8600b = {
+				400, OSC-1, 1, -1, -1, -1, -1};
+#endif
 
 void am33xx_spl_board_init(void)
 {
@@ -228,7 +269,7 @@ void am33xx_spl_board_init(void)
 
 	/* Get the frequency */
 	dpll_mpu_opp100.m = am335x_get_efuse_mpu_max_freq(cdev);
-
+	printf("Cpu freq %d\n",dpll_mpu_opp100.m);
 	if (board_is_bone(&header) || board_is_bone_lt(&header)) {
 		/* BeagleBone PMIC Code */
 		int usb_cur_lim;
@@ -323,7 +364,16 @@ void am33xx_spl_board_init(void)
 				       TPS65217_LDO_VOLTAGE_OUT_3_3,
 				       TPS65217_LDO_MASK))
 			puts("tps65217_reg_write failure\n");
-	} else {
+	}
+#ifdef CONFIG_SBC8600B
+	else if(board_is_sbc8600b(&header))
+	{
+		//dpll_mpu_opp100.m = MPUPLL_M_1000;
+		do_setup_dpll(&dpll_core_regs, &dpll_core_opp100);
+	}
+#endif
+	else {
+	
 		int sil_rev;
 
 		/*
@@ -377,6 +427,10 @@ const struct dpll_params *get_dpll_ddr_params(void)
 		return &dpll_ddr_bone_black;
 	else if (board_is_evm_15_or_later(&header))
 		return &dpll_ddr_evm_sk;
+	#ifdef CONFIG_SBC8600B
+	else if (board_is_sbc8600b(&header))
+		return &dpll_ddr_sbc8600b;
+	#endif
 	else
 		return &dpll_ddr;
 }
@@ -439,7 +493,15 @@ const struct ctrl_ioregs ioregs = {
 	.dt0ioctl		= MT47H128M16RT25E_IOCTRL_VALUE,
 	.dt1ioctl		= MT47H128M16RT25E_IOCTRL_VALUE,
 };
-
+#ifdef CONFIG_SBC8600B
+const struct ctrl_ioregs ioregs_sbc8600b = {
+	.cm0ioctl		= SBC8600B_IOCTRL_VALUE,
+	.cm1ioctl		= SBC8600B_IOCTRL_VALUE,
+	.cm2ioctl		= SBC8600B_IOCTRL_VALUE,
+	.dt0ioctl		= SBC8600B_IOCTRL_VALUE,
+	.dt1ioctl		= SBC8600B_IOCTRL_VALUE,
+};
+#endif
 void sdram_init(void)
 {
 	__maybe_unused struct am335x_baseboard_id header;
@@ -467,6 +529,13 @@ void sdram_init(void)
 	else if (board_is_evm_15_or_later(&header))
 		config_ddr(303, &ioregs_evm15, &ddr3_evm_data,
 			   &ddr3_evm_cmd_ctrl_data, &ddr3_evm_emif_reg_data, 0);
+	#ifdef CONFIG_SBC8600B
+	else if(board_is_sbc8600b(&header))
+	{
+		config_ddr(400,&ioregs_sbc8600b,&ddr3_sbc8600b_data,
+				&ddr3_cmd_ctrl_sbc8600b_data,&ddr3_emif_reg_sbc8600b_data,0);
+	}
+	#endif
 	else
 		config_ddr(266, &ioregs, &ddr2_data,
 			   &ddr2_cmd_ctrl_data, &ddr2_emif_reg_data, 0);
@@ -526,7 +595,11 @@ static struct cpsw_slave_data cpsw_slaves[] = {
 	{
 		.slave_reg_ofs	= 0x208,
 		.sliver_reg_ofs	= 0xd80,
+#ifdef CONFIG_SBC8600B
+		.phy_addr = 4,
+#else
 		.phy_addr	= 0,
+#endif
 	},
 	{
 		.slave_reg_ofs	= 0x308,
@@ -645,14 +718,17 @@ int board_eth_init(bd_t *bis)
 #define AR8051_PHY_DEBUG_DATA_REG	0x1e
 #define AR8051_DEBUG_RGMII_CLK_DLY_REG	0x5
 #define AR8051_RGMII_TX_CLK_DLY		0x100
-
+#ifdef CONFIG_SBC8600B
+if (board_is_evm_sk(&header) || board_is_gp_evm(&header) || board_is_sbc8600b(&header)) {
+#else
 	if (board_is_evm_sk(&header) || board_is_gp_evm(&header)) {
+#endif
 		const char *devname;
 		devname = miiphy_get_current_dev();
 
-		miiphy_write(devname, 0x0, AR8051_PHY_DEBUG_ADDR_REG,
+		miiphy_write(devname, 0x4, AR8051_PHY_DEBUG_ADDR_REG,
 				AR8051_DEBUG_RGMII_CLK_DLY_REG);
-		miiphy_write(devname, 0x0, AR8051_PHY_DEBUG_DATA_REG,
+		miiphy_write(devname, 0x4, AR8051_PHY_DEBUG_DATA_REG,
 				AR8051_RGMII_TX_CLK_DLY);
 	}
 #endif

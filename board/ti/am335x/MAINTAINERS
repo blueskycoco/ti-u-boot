@@ -15,3 +15,4 @@ F:	configs/am335x_evm_uart3_defconfig
 F:	configs/am335x_evm_uart4_defconfig
 F:	configs/am335x_evm_uart5_defconfig
 F:	configs/am335x_evm_usbspl_defconfig
+F:	configs/am335x_sbc8600b_defconfig

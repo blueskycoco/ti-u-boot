@@ -59,7 +59,12 @@ static inline int board_is_evm_15_or_later(struct am335x_baseboard_id *header)
 	return (board_is_gp_evm(header) &&
 		strncmp("1.5", header->version, 3) <= 0);
 }
-
+#ifdef CONFIG_SBC8600B
+static inline int board_is_sbc8600b(struct am335x_baseboard_id *header)
+{
+	return 1;
+}
+#endif
 /*
  * We have three pin mux functions that must exist.  We must be able to enable
  * uart0, for initial output and i2c0 to read the main EEPROM.  We then have a
