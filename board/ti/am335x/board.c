@@ -269,7 +269,7 @@ void am33xx_spl_board_init(void)
 
 	/* Get the frequency */
 	dpll_mpu_opp100.m = am335x_get_efuse_mpu_max_freq(cdev);
-	printf("Cpu freq %d\n",dpll_mpu_opp100.m);
+	printf("Cpu freq %d MHz\n",dpll_mpu_opp100.m);
 	if (board_is_bone(&header) || board_is_bone_lt(&header)) {
 		/* BeagleBone PMIC Code */
 		int usb_cur_lim;
@@ -604,7 +604,11 @@ static struct cpsw_slave_data cpsw_slaves[] = {
 	{
 		.slave_reg_ofs	= 0x308,
 		.sliver_reg_ofs	= 0xdc0,
+#ifdef CONFIG_SBC8600B
+		.phy_addr = 6,
+#else		
 		.phy_addr	= 1,
+#endif
 	},
 };
 
@@ -614,7 +618,11 @@ static struct cpsw_platform_data cpsw_data = {
 	.mdio_div		= 0xff,
 	.channels		= 8,
 	.cpdma_reg_ofs		= 0x800,
+#ifdef CONFIG_SBC8600B
+	.slaves			= 2,
+#else
 	.slaves			= 1,
+#endif
 	.slave_data		= cpsw_slaves,
 	.ale_reg_ofs		= 0xd00,
 	.ale_entries		= 1024,
@@ -729,6 +737,11 @@ if (board_is_evm_sk(&header) || board_is_gp_evm(&header) || board_is_sbc8600b(&h
 		miiphy_write(devname, 0x4, AR8051_PHY_DEBUG_ADDR_REG,
 				AR8051_DEBUG_RGMII_CLK_DLY_REG);
 		miiphy_write(devname, 0x4, AR8051_PHY_DEBUG_DATA_REG,
+				AR8051_RGMII_TX_CLK_DLY);
+		
+		miiphy_write(devname, 0x6, AR8051_PHY_DEBUG_ADDR_REG,
+				AR8051_DEBUG_RGMII_CLK_DLY_REG);
+		miiphy_write(devname, 0x6, AR8051_PHY_DEBUG_DATA_REG,
 				AR8051_RGMII_TX_CLK_DLY);
 	}
 #endif
