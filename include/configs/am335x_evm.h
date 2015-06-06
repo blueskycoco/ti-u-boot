@@ -381,10 +381,10 @@
 	"SPL.backup1 part 0 2;" \
 	"SPL.backup2 part 0 3;" \
 	"SPL.backup3 part 0 4;" \
-	"u-boot part 0 5;" \
-	"u-boot-spl-os part 0 6;" \
-	"kernel part 0 8;" \
-	"rootfs part 0 9\0"
+	"u-boot part 0 6;" \
+	"u-boot-spl-os part 0 5;" \
+	"kernel part 0 9;" \
+	"rootfs part 0 10\0"
 #else
 #define DFU_ALT_INFO_NAND ""
 #endif
