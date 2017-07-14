@@ -42,26 +42,7 @@
 DECLARE_GLOBAL_DATA_PTR;
 
 /* GPIO that controls power to DDR on EVM-SK */
-#define GPIO_TO_PIN(bank, gpio)		(32 * (bank) + (gpio))
-#define GPIO_DDR_VTT_EN		GPIO_TO_PIN(0, 7)
-#define ICE_GPIO_DDR_VTT_EN	GPIO_TO_PIN(0, 18)
-#define GPIO_PR1_MII_CTRL	GPIO_TO_PIN(3, 4)
-#define GPIO_MUX_MII_CTRL	GPIO_TO_PIN(3, 10)
-#define GPIO_FET_SWITCH_CTRL	GPIO_TO_PIN(0, 7)
-#define GPIO_PHY_RESET		GPIO_TO_PIN(2, 5)
-#define GPIO_ETH0_MODE		GPIO_TO_PIN(0, 11)
-#define GPIO_ETH1_MODE		GPIO_TO_PIN(1, 26)
-
 static struct ctrl_dev *cdev = (struct ctrl_dev *)CTRL_DEVICE_BASE;
-
-#define GPIO0_RISINGDETECT	(AM33XX_GPIO0_BASE + OMAP_GPIO_RISINGDETECT)
-#define GPIO1_RISINGDETECT	(AM33XX_GPIO1_BASE + OMAP_GPIO_RISINGDETECT)
-
-#define GPIO0_IRQSTATUS1	(AM33XX_GPIO0_BASE + OMAP_GPIO_IRQSTATUS1)
-#define GPIO1_IRQSTATUS1	(AM33XX_GPIO1_BASE + OMAP_GPIO_IRQSTATUS1)
-
-#define GPIO0_IRQSTATUSRAW	(AM33XX_GPIO0_BASE + 0x024)
-#define GPIO1_IRQSTATUSRAW	(AM33XX_GPIO1_BASE + 0x024)
 
 /*
  * Read header information from EEPROM into global structure.
@@ -80,161 +61,11 @@ void do_board_detect(void)
 #ifndef CONFIG_DM_SERIAL
 struct serial_device *default_serial_console(void)
 {
-	return &eserial1_device;
+	return &eserial4_device;
 }
 #endif
 
 #ifndef CONFIG_SKIP_LOWLEVEL_INIT
-static const struct ddr_data ddr2_data = {
-	.datardsratio0 = MT47H128M16RT25E_RD_DQS,
-	.datafwsratio0 = MT47H128M16RT25E_PHY_FIFO_WE,
-	.datawrsratio0 = MT47H128M16RT25E_PHY_WR_DATA,
-};
-
-static const struct cmd_control ddr2_cmd_ctrl_data = {
-	.cmd0csratio = MT47H128M16RT25E_RATIO,
-
-	.cmd1csratio = MT47H128M16RT25E_RATIO,
-
-	.cmd2csratio = MT47H128M16RT25E_RATIO,
-};
-
-static const struct emif_regs ddr2_emif_reg_data = {
-	.sdram_config = MT47H128M16RT25E_EMIF_SDCFG,
-	.ref_ctrl = MT47H128M16RT25E_EMIF_SDREF,
-	.sdram_tim1 = MT47H128M16RT25E_EMIF_TIM1,
-	.sdram_tim2 = MT47H128M16RT25E_EMIF_TIM2,
-	.sdram_tim3 = MT47H128M16RT25E_EMIF_TIM3,
-	.emif_ddr_phy_ctlr_1 = MT47H128M16RT25E_EMIF_READ_LATENCY,
-};
-
-static const struct emif_regs ddr2_evm_emif_reg_data = {
-	.sdram_config = MT47H128M16RT25E_EMIF_SDCFG,
-	.ref_ctrl = MT47H128M16RT25E_EMIF_SDREF,
-	.sdram_tim1 = MT47H128M16RT25E_EMIF_TIM1,
-	.sdram_tim2 = MT47H128M16RT25E_EMIF_TIM2,
-	.sdram_tim3 = MT47H128M16RT25E_EMIF_TIM3,
-	.ocp_config = EMIF_OCP_CONFIG_AM335X_EVM,
-	.emif_ddr_phy_ctlr_1 = MT47H128M16RT25E_EMIF_READ_LATENCY,
-};
-
-static const struct ddr_data ddr3_data = {
-	.datardsratio0 = MT41J128MJT125_RD_DQS,
-	.datawdsratio0 = MT41J128MJT125_WR_DQS,
-	.datafwsratio0 = MT41J128MJT125_PHY_FIFO_WE,
-	.datawrsratio0 = MT41J128MJT125_PHY_WR_DATA,
-};
-
-static const struct ddr_data ddr3_beagleblack_data = {
-	.datardsratio0 = MT41K256M16HA125E_RD_DQS,
-	.datawdsratio0 = MT41K256M16HA125E_WR_DQS,
-	.datafwsratio0 = MT41K256M16HA125E_PHY_FIFO_WE,
-	.datawrsratio0 = MT41K256M16HA125E_PHY_WR_DATA,
-};
-
-static const struct ddr_data ddr3_evm_data = {
-	.datardsratio0 = MT41J512M8RH125_RD_DQS,
-	.datawdsratio0 = MT41J512M8RH125_WR_DQS,
-	.datafwsratio0 = MT41J512M8RH125_PHY_FIFO_WE,
-	.datawrsratio0 = MT41J512M8RH125_PHY_WR_DATA,
-};
-
-static const struct ddr_data ddr3_icev2_data = {
-	.datardsratio0 = MT41J128MJT125_RD_DQS_400MHz,
-	.datawdsratio0 = MT41J128MJT125_WR_DQS_400MHz,
-	.datafwsratio0 = MT41J128MJT125_PHY_FIFO_WE_400MHz,
-	.datawrsratio0 = MT41J128MJT125_PHY_WR_DATA_400MHz,
-};
-
-static const struct cmd_control ddr3_cmd_ctrl_data = {
-	.cmd0csratio = MT41J128MJT125_RATIO,
-	.cmd0iclkout = MT41J128MJT125_INVERT_CLKOUT,
-
-	.cmd1csratio = MT41J128MJT125_RATIO,
-	.cmd1iclkout = MT41J128MJT125_INVERT_CLKOUT,
-
-	.cmd2csratio = MT41J128MJT125_RATIO,
-	.cmd2iclkout = MT41J128MJT125_INVERT_CLKOUT,
-};
-
-static const struct cmd_control ddr3_beagleblack_cmd_ctrl_data = {
-	.cmd0csratio = MT41K256M16HA125E_RATIO,
-	.cmd0iclkout = MT41K256M16HA125E_INVERT_CLKOUT,
-
-	.cmd1csratio = MT41K256M16HA125E_RATIO,
-	.cmd1iclkout = MT41K256M16HA125E_INVERT_CLKOUT,
-
-	.cmd2csratio = MT41K256M16HA125E_RATIO,
-	.cmd2iclkout = MT41K256M16HA125E_INVERT_CLKOUT,
-};
-
-static const struct cmd_control ddr3_evm_cmd_ctrl_data = {
-	.cmd0csratio = MT41J512M8RH125_RATIO,
-	.cmd0iclkout = MT41J512M8RH125_INVERT_CLKOUT,
-
-	.cmd1csratio = MT41J512M8RH125_RATIO,
-	.cmd1iclkout = MT41J512M8RH125_INVERT_CLKOUT,
-
-	.cmd2csratio = MT41J512M8RH125_RATIO,
-	.cmd2iclkout = MT41J512M8RH125_INVERT_CLKOUT,
-};
-
-static const struct cmd_control ddr3_icev2_cmd_ctrl_data = {
-	.cmd0csratio = MT41J128MJT125_RATIO_400MHz,
-	.cmd0iclkout = MT41J128MJT125_INVERT_CLKOUT_400MHz,
-
-	.cmd1csratio = MT41J128MJT125_RATIO_400MHz,
-	.cmd1iclkout = MT41J128MJT125_INVERT_CLKOUT_400MHz,
-
-	.cmd2csratio = MT41J128MJT125_RATIO_400MHz,
-	.cmd2iclkout = MT41J128MJT125_INVERT_CLKOUT_400MHz,
-};
-
-static struct emif_regs ddr3_emif_reg_data = {
-	.sdram_config = MT41J128MJT125_EMIF_SDCFG,
-	.ref_ctrl = MT41J128MJT125_EMIF_SDREF,
-	.sdram_tim1 = MT41J128MJT125_EMIF_TIM1,
-	.sdram_tim2 = MT41J128MJT125_EMIF_TIM2,
-	.sdram_tim3 = MT41J128MJT125_EMIF_TIM3,
-	.zq_config = MT41J128MJT125_ZQ_CFG,
-	.emif_ddr_phy_ctlr_1 = MT41J128MJT125_EMIF_READ_LATENCY |
-				PHY_EN_DYN_PWRDN,
-};
-
-static struct emif_regs ddr3_beagleblack_emif_reg_data = {
-	.sdram_config = MT41K256M16HA125E_EMIF_SDCFG,
-	.ref_ctrl = MT41K256M16HA125E_EMIF_SDREF,
-	.sdram_tim1 = MT41K256M16HA125E_EMIF_TIM1,
-	.sdram_tim2 = MT41K256M16HA125E_EMIF_TIM2,
-	.sdram_tim3 = MT41K256M16HA125E_EMIF_TIM3,
-	.ocp_config = EMIF_OCP_CONFIG_BEAGLEBONE_BLACK,
-	.zq_config = MT41K256M16HA125E_ZQ_CFG,
-	.emif_ddr_phy_ctlr_1 = MT41K256M16HA125E_EMIF_READ_LATENCY,
-};
-
-static struct emif_regs ddr3_evm_emif_reg_data = {
-	.sdram_config = MT41J512M8RH125_EMIF_SDCFG,
-	.ref_ctrl = MT41J512M8RH125_EMIF_SDREF,
-	.sdram_tim1 = MT41J512M8RH125_EMIF_TIM1,
-	.sdram_tim2 = MT41J512M8RH125_EMIF_TIM2,
-	.sdram_tim3 = MT41J512M8RH125_EMIF_TIM3,
-	.ocp_config = EMIF_OCP_CONFIG_AM335X_EVM,
-	.zq_config = MT41J512M8RH125_ZQ_CFG,
-	.emif_ddr_phy_ctlr_1 = MT41J512M8RH125_EMIF_READ_LATENCY |
-				PHY_EN_DYN_PWRDN,
-};
-
-static struct emif_regs ddr3_icev2_emif_reg_data = {
-	.sdram_config = MT41J128MJT125_EMIF_SDCFG_400MHz,
-	.ref_ctrl = MT41J128MJT125_EMIF_SDREF_400MHz,
-	.sdram_tim1 = MT41J128MJT125_EMIF_TIM1_400MHz,
-	.sdram_tim2 = MT41J128MJT125_EMIF_TIM2_400MHz,
-	.sdram_tim3 = MT41J128MJT125_EMIF_TIM3_400MHz,
-	.zq_config = MT41J128MJT125_ZQ_CFG_400MHz,
-	.emif_ddr_phy_ctlr_1 = MT41J128MJT125_EMIF_READ_LATENCY_400MHz |
-				PHY_EN_DYN_PWRDN,
-};
-
 #ifdef CONFIG_SPL_OS_BOOT
 int spl_start_uboot(void)
 {
@@ -260,18 +91,10 @@ const struct dpll_params *get_dpll_ddr_params(void)
 	return &dpll_ddr3_400MHz[ind];
 }
 
-static u8 bone_not_connected_to_ac_power(void)
-{
-	return 0;
-}
-
 const struct dpll_params *get_dpll_mpu_params(void)
 {
 	int ind = get_sys_clk_index();
 	int freq = am335x_get_efuse_mpu_max_freq(cdev);
-
-	if (bone_not_connected_to_ac_power())
-		freq = MPUPLL_M_600;
 
 	switch (freq) {
 	case MPUPLL_M_1000:
@@ -291,65 +114,10 @@ const struct dpll_params *get_dpll_mpu_params(void)
 	return &dpll_mpu_opp[ind][0];
 }
 
-static void scale_vcores_bone(int freq)
-{
-
-}
-
-void scale_vcores_generic(int freq)
-{
-	int sil_rev, mpu_vdd;
-
-	/*
-	 * The GP EVM, IDK and EVM SK use a TPS65910 PMIC.  For all
-	 * MPU frequencies we support we use a CORE voltage of
-	 * 1.10V.  For MPU voltage we need to switch based on
-	 * the frequency we are running at.
-	 */
-	if (i2c_probe(TPS65910_CTRL_I2C_ADDR))
-		return;
-
-	/*
-	 * Depending on MPU clock and PG we will need a different
-	 * VDD to drive at that speed.
-	 */
-	sil_rev = readl(&cdev->deviceid) >> 28;
-	mpu_vdd = am335x_get_tps65910_mpu_vdd(sil_rev, freq);
-
-	/* Tell the TPS65910 to use i2c */
-	tps65910_set_i2c_control();
-
-	/* First update MPU voltage. */
-	if (tps65910_voltage_update(MPU, mpu_vdd))
-		return;
-
-	/* Second, update the CORE voltage. */
-	if (tps65910_voltage_update(CORE, TPS65910_OP_REG_SEL_1_1_0))
-		return;
-
-}
-
-void gpi2c_init(void)
-{
-	/* When needed to be invoked prior to BSS initialization */
-	static bool first_time = true;
-
-	if (first_time) {
-		enable_i2c0_pin_mux();
-		i2c_init(CONFIG_SYS_OMAP24_I2C_SPEED,
-			 CONFIG_SYS_OMAP24_I2C_SLAVE);
-		first_time = false;
-	}
-}
 
 void scale_vcores(void)
 {
-	int freq;
-
-	gpi2c_init();
-	freq = am335x_get_efuse_mpu_max_freq(cdev);
-
-		scale_vcores_generic(freq);
+	
 }
 
 void set_uart_mux_conf(void)
@@ -374,89 +142,63 @@ void set_mux_conf_regs(void)
 	enable_board_pin_mux();
 }
 
-const struct ctrl_ioregs ioregs_evmsk = {
-	.cm0ioctl		= MT41J128MJT125_IOCTRL_VALUE,
-	.cm1ioctl		= MT41J128MJT125_IOCTRL_VALUE,
-	.cm2ioctl		= MT41J128MJT125_IOCTRL_VALUE,
-	.dt0ioctl		= MT41J128MJT125_IOCTRL_VALUE,
-	.dt1ioctl		= MT41J128MJT125_IOCTRL_VALUE,
+#define SBC8600B_EMIF_READ_LATENCY 	0x10B
+#define SBC8600B_EMIF_TIM1     		0x0CCCE524
+#define SBC8600B_EMIF_TIM2     		0x30308023
+#define SBC8600B_EMIF_TIM3     		0x009F82CF
+#define SBC8600B_EMIF_SDCFG        	0x62A45032
+#define SBC8600B_EMIF_SDREF        	0x10000C30
+#define SBC8600B_ZQ_CFG            	0x50074BE4
+#define SBC8600B_RATIO         		0x100
+#define SBC8600B_INVERT_CLKOUT     	0x01
+#define SBC8600B_RD_DQS            	0x3B
+#define SBC8600B_WR_DQS            	0xA6
+#define SBC8600B_PHY_FIFO_WE       	0x12A
+#define SBC8600B_PHY_WR_DATA       	0xE6
+#define SBC8600B_IOCTRL_VALUE      	0x18B
+
+static const struct ddr_data ddr3_sbc8600b_data = {
+   .datardsratio0 = SBC8600B_RD_DQS,
+   .datawdsratio0 = SBC8600B_WR_DQS,
+   .datafwsratio0 = SBC8600B_PHY_FIFO_WE,
+   .datawrsratio0 = SBC8600B_PHY_WR_DATA,
+};
+static const struct cmd_control ddr3_cmd_ctrl_sbc8600b_data = {
+   .cmd0csratio = SBC8600B_RATIO,
+   .cmd0iclkout = SBC8600B_INVERT_CLKOUT,
+
+   .cmd1csratio = SBC8600B_RATIO,
+   .cmd1iclkout = SBC8600B_INVERT_CLKOUT,
+
+   .cmd2csratio = SBC8600B_RATIO,
+   .cmd2iclkout = SBC8600B_INVERT_CLKOUT,
+};
+static struct emif_regs ddr3_emif_reg_sbc8600b_data = {
+   .sdram_config = 	SBC8600B_EMIF_SDCFG,
+   .ref_ctrl = 		SBC8600B_EMIF_SDREF,
+   .sdram_tim1 = 	SBC8600B_EMIF_TIM1,
+   .sdram_tim2 = 	SBC8600B_EMIF_TIM2,
+   .sdram_tim3 = 	SBC8600B_EMIF_TIM3,
+   .zq_config = 	SBC8600B_ZQ_CFG,
+   .emif_ddr_phy_ctlr_1 = 	SBC8600B_EMIF_READ_LATENCY |
+               				PHY_EN_DYN_PWRDN,
+};
+const struct ctrl_ioregs ioregs_sbc8600b = {
+   .cm0ioctl       = SBC8600B_IOCTRL_VALUE,
+   .cm1ioctl       = SBC8600B_IOCTRL_VALUE,
+   .cm2ioctl       = SBC8600B_IOCTRL_VALUE,
+   .dt0ioctl       = SBC8600B_IOCTRL_VALUE,
+   .dt1ioctl       = SBC8600B_IOCTRL_VALUE,
 };
 
-const struct ctrl_ioregs ioregs_bonelt = {
-	.cm0ioctl		= MT41K256M16HA125E_IOCTRL_VALUE,
-	.cm1ioctl		= MT41K256M16HA125E_IOCTRL_VALUE,
-	.cm2ioctl		= MT41K256M16HA125E_IOCTRL_VALUE,
-	.dt0ioctl		= MT41K256M16HA125E_IOCTRL_VALUE,
-	.dt1ioctl		= MT41K256M16HA125E_IOCTRL_VALUE,
-};
-
-const struct ctrl_ioregs ioregs_evm15 = {
-	.cm0ioctl		= MT41J512M8RH125_IOCTRL_VALUE,
-	.cm1ioctl		= MT41J512M8RH125_IOCTRL_VALUE,
-	.cm2ioctl		= MT41J512M8RH125_IOCTRL_VALUE,
-	.dt0ioctl		= MT41J512M8RH125_IOCTRL_VALUE,
-	.dt1ioctl		= MT41J512M8RH125_IOCTRL_VALUE,
-};
-
-const struct ctrl_ioregs ioregs = {
-	.cm0ioctl		= MT47H128M16RT25E_IOCTRL_VALUE,
-	.cm1ioctl		= MT47H128M16RT25E_IOCTRL_VALUE,
-	.cm2ioctl		= MT47H128M16RT25E_IOCTRL_VALUE,
-	.dt0ioctl		= MT47H128M16RT25E_IOCTRL_VALUE,
-	.dt1ioctl		= MT47H128M16RT25E_IOCTRL_VALUE,
-};
 
 void sdram_init(void)
 {
-		config_ddr(400, &ioregs_bonelt,
-			   &ddr3_beagleblack_data,
-			   &ddr3_beagleblack_cmd_ctrl_data,
-			   &ddr3_beagleblack_emif_reg_data, 0);
+		config_ddr(400, &ioregs_sbc8600b,
+			   &ddr3_sbc8600b_data,
+			   &ddr3_cmd_ctrl_sbc8600b_data,
+			   &ddr3_emif_reg_sbc8600b_data, 0);
 }
-#endif
-
-#if !defined(CONFIG_SPL_BUILD) || \
-	(defined(CONFIG_SPL_ETH_SUPPORT) && defined(CONFIG_SPL_BUILD))
-static void request_and_set_gpio(int gpio, char *name, int val)
-{
-	int ret;
-
-	ret = gpio_request(gpio, name);
-	if (ret < 0) {
-		printf("%s: Unable to request %s\n", __func__, name);
-		return;
-	}
-
-	ret = gpio_direction_output(gpio, 0);
-	if (ret < 0) {
-		printf("%s: Unable to set %s  as output\n", __func__, name);
-		goto err_free_gpio;
-	}
-
-	gpio_set_value(gpio, val);
-
-	return;
-
-err_free_gpio:
-	gpio_free(gpio);
-}
-
-#define REQUEST_AND_SET_GPIO(N)	request_and_set_gpio(N, #N, 1);
-#define REQUEST_AND_CLR_GPIO(N)	request_and_set_gpio(N, #N, 0);
-
-/**
- * RMII mode on ICEv2 board needs 50MHz clock. Given the clock
- * synthesizer With a capacitor of 18pF, and 25MHz input clock cycle
- * PLL1 gives an output of 100MHz. So, configuring the div2/3 as 2 to
- * give 50MHz output for Eth0 and 1.
- */
-static struct clk_synth cdce913_data = {
-	.id = 0x81,
-	.capacitor = 0x90,
-	.mux = 0x6d,
-	.pdiv2 = 0x2,
-	.pdiv3 = 0x2,
-};
 #endif
 
 #if !defined(CONFIG_SPL_BUILD) || \
@@ -558,7 +300,7 @@ static struct cpsw_slave_data cpsw_slaves[] = {
 	{
 		.slave_reg_ofs	= 0x208,
 		.sliver_reg_ofs	= 0xd80,
-		.phy_addr	= 0,
+		.phy_addr	= 4,
 	},
 	{
 		.slave_reg_ofs	= 0x308,
@@ -659,9 +401,9 @@ int board_eth_init(bd_t *bis)
 		const char *devname;
 		devname = miiphy_get_current_dev();
 
-		miiphy_write(devname, 0x0, AR8051_PHY_DEBUG_ADDR_REG,
+		miiphy_write(devname, 0x4, AR8051_PHY_DEBUG_ADDR_REG,
 				AR8051_DEBUG_RGMII_CLK_DLY_REG);
-		miiphy_write(devname, 0x0, AR8051_PHY_DEBUG_DATA_REG,
+		miiphy_write(devname, 0x4, AR8051_PHY_DEBUG_DATA_REG,
 				AR8051_RGMII_TX_CLK_DLY);
 #endif
 #if defined(CONFIG_USB_ETHER) && \
@@ -696,131 +438,9 @@ void board_fit_image_post_process(void **p_image, size_t *p_size)
 	secure_boot_verify_image(p_image, p_size);
 }
 #endif
-
 #if defined(CONFIG_OF_LIBFDT) && defined(CONFIG_OF_BOARD_SETUP)
-
-static const char pruss_eth0_alias[] = "/pruss_eth/ethernet-mii0";
-static const char pruss_eth1_alias[] = "/pruss_eth/ethernet-mii1";
-
 int ft_board_setup(void *fdt, bd_t *bd)
 {
-	const char *path;
-	int offs;
-	int ret;
-
 	return 0;
-
-	/* Board DT default is both ports are RMII */
-	if (!eth0_is_mii && !eth1_is_mii)
-		return 0;
-
-	if (eth0_is_mii != eth1_is_mii) {
-		printf("Unsupported Ethernet port configuration\n");
-		printf("Both ports must be set as RMII or MII\n");
-		return 0;
-	}
-
-	printf("Fixing up ETH0 & ETH1 to PRUSS Ethernet\n");
-	/* Enable PRUSS-MDIO */
-	path = "/ocp/pruss_soc_bus@4a326000/pruss@4a300000/mdio@4a332400";
-	offs = fdt_path_offset(fdt, path);
-	if (offs < 0)
-		goto no_node;
-
-	ret = fdt_status_okay(fdt, offs);
-	if (ret < 0)
-		goto enable_failed;
-
-	/* Enable PRU-ICSS Ethernet */
-	path = "/pruss_eth";
-	offs = fdt_path_offset(fdt, path);
-	if (offs < 0)
-		goto no_node;
-
-	ret = fdt_status_okay(fdt, offs);
-	if (ret < 0)
-		goto enable_failed;
-
-	/* Disable CPSW Ethernet */
-	path = "/ocp/ethernet@4a100000";
-	offs = fdt_path_offset(fdt, path);
-	if (offs < 0)
-		goto no_node;
-
-	ret = fdt_status_disabled(fdt, offs);
-	if (ret < 0)
-		goto disable_failed;
-
-	/* Disable CPSW-MDIO */
-	path = "/ocp/ethernet@4a100000/mdio@4a101000";
-	offs = fdt_path_offset(fdt, path);
-	if (offs < 0)
-		goto no_node;
-
-	ret = fdt_status_disabled(fdt, offs);
-	if (ret < 0)
-		goto disable_failed;
-
-	/* Set MUX_MII_CTL1 pin low */
-	path = "/ocp/gpio@481ae000/p10";
-	offs = fdt_path_offset(fdt, path);
-	if (offs < 0) {
-		printf("Node %s not found.\n", path);
-		return offs;
-	}
-
-	ret = fdt_delprop(fdt, offs, "output-high");
-	if (ret < 0) {
-		printf("Could not delete output-high property from node %s: %s\n",
-		       path, fdt_strerror(ret));
-		return ret;
-	}
-
-	ret = fdt_setprop(fdt, offs, "output-low", NULL, 0);
-	if (ret < 0) {
-		printf("Could not add output-low property to node %s: %s\n",
-		       path, fdt_strerror(ret));
-		return ret;
-	}
-
-	/* Fixup ethernet aliases */
-	path = "/aliases";
-	offs = fdt_path_offset(fdt, path);
-	if (offs < 0)
-		goto no_node;
-
-	ret = fdt_setprop(fdt, offs, "ethernet0", pruss_eth0_alias,
-			  strlen(pruss_eth0_alias) + 1);
-	if (ret < 0) {
-		printf("Could not change ethernet0 alias: %s\n",
-		       fdt_strerror(ret));
-		return ret;
-	}
-
-	ret = fdt_setprop(fdt, offs, "ethernet1", pruss_eth1_alias,
-			  strlen(pruss_eth0_alias) + 1);
-	if (ret < 0) {
-		printf("Could not change ethernet0 alias: %s\n",
-		       fdt_strerror(ret));
-		return ret;
-	}
-
-	return 0;
-
-no_node:
-	printf("Node %s not found. Please update DTB.\n", path);
-
-	/* Return 0 as we don't want to prevent booting with older DTBs */
-	return 0;
-
-disable_failed:
-	printf("Could not disable node %s: %s\n",
-	       path, fdt_strerror(ret));
-	return ret;
-
-enable_failed:
-	printf("Could not enable node %s: %s\n",
-	       path, fdt_strerror(ret));
-	return ret;
 }
 #endif
